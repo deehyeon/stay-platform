@@ -33,9 +33,11 @@ void calculateAvailableRooms_연박시_최솟값_반환()
 | 테스트 유형 | 구성 |
 |------------|------|
 | Service (단위) | `@ExtendWith(MockitoExtension.class)` + 직접 mocking |
-| Repository (슬라이스) | `@DataJpaTest` + `@ActiveProfiles("test")` (H2) |
+| Repository (슬라이스) | `@SpringBootTest(webEnvironment = NONE)` + `@ActiveProfiles("test")` + `@Transactional` (H2) |
 | Controller (슬라이스) | `@WebMvcTest` + `MockMvc` |
 | 통합 테스트 | `@SpringBootTest` + `@AutoConfigureMockMvc` |
+
+> Spring Boot 4.0에서 `@DataJpaTest`가 제거됨. Repository 테스트는 `@SpringBootTest(webEnvironment = NONE)`으로 대체. Redis auto-configuration은 `application-test.yaml`의 `spring.autoconfigure.exclude`로 제외.
 
 ## Repository 테스트 — 최소 검증 항목
 
