@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: stay-platform-db
+    environment:
+      POSTGRES_USER: stayplatform
+      POSTGRES_PASSWORD: stayplatform
+      POSTGRES_DB: stayplatformdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - stay-platform-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: stay-platform-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - stay-platform-network
+
+networks:
+  stay-platform-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
