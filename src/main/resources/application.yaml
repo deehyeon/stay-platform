@@ -1,0 +1,43 @@
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/stayplatformdb
+    username: stayplatform
+    password: stayplatform
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          time_zone: UTC
+
+springdoc:
+  api-docs:
+    path: /v1/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+supplier:
+  a:
+    base-url: http://localhost:9090
+    api-key: test-key-a
+    timeout:
+      connect-ms: 3000
+      response-ms: 5000
+  b:
+    base-url: http://localhost:9090
+    api-key: test-key-b
+    timeout:
+      connect-ms: 3000
+      response-ms: 5000
