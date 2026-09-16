@@ -35,6 +35,16 @@ public class SupplierAAdapter implements SupplierPort {
     }
 
     @Override
+    public String supplierCode() {
+        return "SUPPLIER_A";
+    }
+
+    @Override
+    public String supplierName() {
+        return "Supplier A";
+    }
+
+    @Override
     public Flux<SupplierHotelInfo> fetchHotelList() {
         return webClient.get()
                 .uri("/a/v1/hotels")

@@ -74,6 +74,7 @@ jacocoTestReport {
                 '**/exception/**',
                 '**/config/**',
                 '**/webapi/**',
+                '**/runner/**',
             ])
         }))
     }
@@ -101,6 +102,7 @@ jacocoTestCoverageVerification {
                 '**.exception.**',
                 '**.config.**',
                 '**.webapi.**',
+                '**.runner.**',
             ]
         }
     }
