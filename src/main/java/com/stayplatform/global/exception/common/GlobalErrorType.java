@@ -14,6 +14,10 @@ public enum GlobalErrorType implements ErrorType {
     INVALID_REQUEST_ARGUMENT(HttpStatus.BAD_REQUEST, "잘못된 요청 인자입니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증에 실패하였습니다."),
 
+    // Search
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "체크아웃은 체크인보다 늦어야 합니다."),
+    INVALID_ADULT_COUNT(HttpStatus.BAD_REQUEST, "성인 인원은 1명 이상이어야 합니다."),
+
     // Supplier
     SUPPLIER_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "공급사 연동에 실패하였습니다."),
     SUPPLIER_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "공급사 응답 시간이 초과되었습니다."),
