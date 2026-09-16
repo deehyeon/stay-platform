@@ -24,8 +24,4 @@ public class Hotel extends AbstractEntity {
     public static Hotel create(String name) {
         return new Hotel(name);
     }
-
-    public void updateName(String name) {
-        this.name = name;
-    }
 }

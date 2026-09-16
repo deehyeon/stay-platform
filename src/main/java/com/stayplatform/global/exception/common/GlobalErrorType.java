@@ -19,9 +19,7 @@ public enum GlobalErrorType implements ErrorType {
     INVALID_ADULT_COUNT(HttpStatus.BAD_REQUEST, "성인 인원은 1명 이상이어야 합니다."),
 
     // Supplier
-    SUPPLIER_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "공급사 연동에 실패하였습니다."),
-    SUPPLIER_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "공급사 응답 시간이 초과되었습니다."),
-    SUPPLIER_INVALID_RESPONSE(HttpStatus.BAD_GATEWAY, "공급사로부터 유효하지 않은 응답을 받았습니다.");
+    SUPPLIER_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "공급사 연동에 실패하였습니다.");
 
     private final HttpStatus status;
     private final String message;

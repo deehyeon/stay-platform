@@ -1,6 +1,11 @@
 package com.stayplatform.stay.adapter.persistence;
 
 import com.stayplatform.fixture.TestEntityFixture;
+import com.stayplatform.stay.application.required.HotelRepository;
+import com.stayplatform.stay.application.required.RoomTypeRepository;
+import com.stayplatform.stay.application.required.SupplierHotelMappingRepository;
+import com.stayplatform.stay.application.required.SupplierRepository;
+import com.stayplatform.stay.application.required.SupplierRoomTypeMappingRepository;
 import com.stayplatform.stay.domain.Hotel;
 import com.stayplatform.stay.domain.RoomType;
 import com.stayplatform.stay.domain.Supplier;
@@ -105,25 +110,6 @@ class SupplierMappingRepositoryTest {
         // then
         assertThat(result).isPresent();
         assertThat(result.get().getRoomTypeCode()).isEqualTo("DLX-TWN");
-    }
-
-    @Test
-    void findAllBySupplierAndHotelCode_숙소의_전체_객실타입_매핑_목록_조회() {
-        // given
-        RoomType roomType2 = roomTypeRepository.save(TestEntityFixture.createRoomType(hotel, "스탠다드 더블", 2));
-        supplierRoomTypeMappingRepository.save(
-                TestEntityFixture.createRoomTypeMapping(supplier, "A-10023", "DLX-TWN", roomType));
-        supplierRoomTypeMappingRepository.save(
-                TestEntityFixture.createRoomTypeMapping(supplier, "A-10023", "STD-DBL", roomType2));
-
-        // when
-        List<SupplierRoomTypeMapping> result = supplierRoomTypeMappingRepository
-                .findAllBySupplierAndHotelCode(supplier, "A-10023");
-
-        // then
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting(SupplierRoomTypeMapping::getRoomTypeCode)
-                .containsExactlyInAnyOrder("DLX-TWN", "STD-DBL");
     }
 
     @Test
