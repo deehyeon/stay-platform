@@ -1,10 +1,10 @@
 package com.stayplatform.stay.adapter.supplier.supplierb;
 
 import com.stayplatform.stay.adapter.supplier.SupplierChunkUtil;
-import com.stayplatform.stay.adapter.supplier.SupplierPort;
-import com.stayplatform.stay.adapter.supplier.dto.SupplierAvailability;
-import com.stayplatform.stay.adapter.supplier.dto.SupplierHotelInfo;
-import com.stayplatform.stay.adapter.supplier.dto.SupplierRoomTypeInfo;
+import com.stayplatform.stay.application.dto.SupplierAvailability;
+import com.stayplatform.stay.application.dto.SupplierHotelInfo;
+import com.stayplatform.stay.application.dto.SupplierRoomTypeInfo;
+import com.stayplatform.stay.application.required.SupplierPort;
 import com.stayplatform.stay.adapter.supplier.supplierb.dto.SupplierBAvailabilityData;
 import com.stayplatform.stay.adapter.supplier.supplierb.dto.SupplierBAvailabilityItem;
 import com.stayplatform.stay.adapter.supplier.supplierb.dto.SupplierBHotelListData;

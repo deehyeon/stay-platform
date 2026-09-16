@@ -1,13 +1,13 @@
 package com.stayplatform.stay.application;
 
-import com.stayplatform.stay.adapter.persistence.HotelRepository;
-import com.stayplatform.stay.adapter.persistence.RoomTypeRepository;
-import com.stayplatform.stay.adapter.persistence.SupplierHotelMappingRepository;
-import com.stayplatform.stay.adapter.persistence.SupplierRepository;
-import com.stayplatform.stay.adapter.persistence.SupplierRoomTypeMappingRepository;
-import com.stayplatform.stay.adapter.supplier.SupplierPort;
-import com.stayplatform.stay.adapter.supplier.dto.SupplierHotelInfo;
-import com.stayplatform.stay.adapter.supplier.dto.SupplierRoomTypeInfo;
+import com.stayplatform.stay.application.dto.SupplierHotelInfo;
+import com.stayplatform.stay.application.dto.SupplierRoomTypeInfo;
+import com.stayplatform.stay.application.required.HotelRepository;
+import com.stayplatform.stay.application.required.RoomTypeRepository;
+import com.stayplatform.stay.application.required.SupplierHotelMappingRepository;
+import com.stayplatform.stay.application.required.SupplierPort;
+import com.stayplatform.stay.application.required.SupplierRepository;
+import com.stayplatform.stay.application.required.SupplierRoomTypeMappingRepository;
 import com.stayplatform.stay.domain.Hotel;
 import com.stayplatform.stay.domain.RoomType;
 import com.stayplatform.stay.domain.Supplier;

@@ -1,11 +1,11 @@
 package com.stayplatform.stay.application;
 
 import com.stayplatform.fixture.TestEntityFixture;
-import com.stayplatform.stay.adapter.persistence.SupplierHotelMappingRepository;
-import com.stayplatform.stay.adapter.persistence.SupplierRepository;
-import com.stayplatform.stay.adapter.persistence.SupplierRoomTypeMappingRepository;
-import com.stayplatform.stay.adapter.supplier.SupplierPort;
-import com.stayplatform.stay.adapter.supplier.dto.SupplierAvailability;
+import com.stayplatform.stay.application.dto.SupplierAvailability;
+import com.stayplatform.stay.application.required.SupplierHotelMappingRepository;
+import com.stayplatform.stay.application.required.SupplierPort;
+import com.stayplatform.stay.application.required.SupplierRepository;
+import com.stayplatform.stay.application.required.SupplierRoomTypeMappingRepository;
 import com.stayplatform.stay.application.dto.StaySearchRes;
 import com.stayplatform.stay.domain.Hotel;
 import com.stayplatform.stay.domain.RoomType;

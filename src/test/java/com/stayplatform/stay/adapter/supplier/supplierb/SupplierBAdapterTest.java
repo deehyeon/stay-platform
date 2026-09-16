@@ -1,7 +1,7 @@
 package com.stayplatform.stay.adapter.supplier.supplierb;
 
-import com.stayplatform.stay.adapter.supplier.dto.SupplierAvailability;
-import com.stayplatform.stay.adapter.supplier.dto.SupplierHotelInfo;
+import com.stayplatform.stay.application.dto.SupplierAvailability;
+import com.stayplatform.stay.application.dto.SupplierHotelInfo;
 import com.stayplatform.stay.domain.SearchCondition;
 import com.stayplatform.stay.exception.SupplierUnavailableException;
 import okhttp3.mockwebserver.MockResponse;

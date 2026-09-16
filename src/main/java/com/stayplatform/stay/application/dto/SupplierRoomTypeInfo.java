@@ -1,4 +1,4 @@
-package com.stayplatform.stay.adapter.supplier.dto;
+package com.stayplatform.stay.application.dto;
 
 public record SupplierRoomTypeInfo(
         String supplierRoomTypeCode,

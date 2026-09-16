@@ -1,4 +1,4 @@
-package com.stayplatform.stay.adapter.persistence;
+package com.stayplatform.stay.application.required;
 
 import com.stayplatform.stay.domain.Supplier;
 import com.stayplatform.stay.domain.SupplierHotelMapping;

@@ -40,7 +40,6 @@ public class SupplierBMockHandler extends AbstractMockSupplierHandler {
 
     @Override
     protected void handleError(HttpExchange exchange) throws IOException {
-        // Supplier B는 장애 시에도 HTTP 200을 반환하고 resultCode로만 실패를 표현한다.
         sendJson(exchange, 200, """
                 {"resultCode":"E503","resultMessage":"TEMPORARILY_UNAVAILABLE","data":null}""");
     }

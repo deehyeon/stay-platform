@@ -31,11 +31,6 @@ public abstract class AbstractMockSupplierHandler implements MockSupplierHandler
 
     protected abstract String normalAvailabilityResponseBody();
 
-    /**
-     * 공급사마다 에러 표현 방식이 다르므로 각 구현체가 정의한다.
-     * - Supplier A: HTTP 503
-     * - Supplier B: HTTP 200 + resultCode: E503
-     */
     protected abstract void handleError(HttpExchange exchange) throws IOException;
 
     private void handleHotelList(HttpExchange exchange) throws IOException {

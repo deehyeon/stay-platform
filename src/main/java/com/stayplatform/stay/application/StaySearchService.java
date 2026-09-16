@@ -1,10 +1,10 @@
 package com.stayplatform.stay.application;
 
-import com.stayplatform.stay.adapter.persistence.SupplierHotelMappingRepository;
-import com.stayplatform.stay.adapter.persistence.SupplierRepository;
-import com.stayplatform.stay.adapter.persistence.SupplierRoomTypeMappingRepository;
-import com.stayplatform.stay.adapter.supplier.SupplierPort;
-import com.stayplatform.stay.adapter.supplier.dto.SupplierAvailability;
+import com.stayplatform.stay.application.dto.SupplierAvailability;
+import com.stayplatform.stay.application.required.SupplierHotelMappingRepository;
+import com.stayplatform.stay.application.required.SupplierPort;
+import com.stayplatform.stay.application.required.SupplierRepository;
+import com.stayplatform.stay.application.required.SupplierRoomTypeMappingRepository;
 import com.stayplatform.stay.application.dto.StaySearchItemRes;
 import com.stayplatform.stay.application.dto.StaySearchRes;
 import com.stayplatform.stay.domain.SearchCondition;
@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -67,9 +68,9 @@ public class StaySearchService {
                                     .stream()
                                     .map(SupplierHotelMapping::getHotelCode)
                                     .toList();
-                            return java.util.stream.Stream.of(new SupplierContext(port, supplier, codes));
+                            return Stream.of(new SupplierContext(port, supplier, codes));
                         })
-                        .orElseGet(java.util.stream.Stream::empty))
+                        .orElseGet(Stream::empty))
                 .toList();
     }
 
