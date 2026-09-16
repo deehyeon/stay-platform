@@ -1,5 +1,6 @@
 package com.stayplatform.stay.adapter.supplier.supplierb;
 
+import com.stayplatform.stay.adapter.supplier.SupplierChunkUtil;
 import com.stayplatform.stay.adapter.supplier.SupplierPort;
 import com.stayplatform.stay.adapter.supplier.dto.SupplierAvailability;
 import com.stayplatform.stay.adapter.supplier.dto.SupplierHotelInfo;
@@ -7,9 +8,10 @@ import com.stayplatform.stay.adapter.supplier.dto.SupplierRoomTypeInfo;
 import com.stayplatform.stay.adapter.supplier.supplierb.dto.SupplierBAvailabilityData;
 import com.stayplatform.stay.adapter.supplier.supplierb.dto.SupplierBAvailabilityItem;
 import com.stayplatform.stay.adapter.supplier.supplierb.dto.SupplierBHotelListData;
-import com.stayplatform.stay.adapter.supplier.supplierb.dto.SupplierBInventory;
 import com.stayplatform.stay.adapter.supplier.supplierb.dto.SupplierBPropertyItem;
 import com.stayplatform.stay.adapter.supplier.supplierb.dto.SupplierBResponse;
+import com.stayplatform.stay.domain.DailyInventory;
+import com.stayplatform.stay.domain.InventoryCalculator;
 import com.stayplatform.stay.domain.SearchCondition;
 import com.stayplatform.stay.exception.SupplierUnavailableException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,7 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
@@ -51,7 +53,7 @@ public class SupplierBAdapter implements SupplierPort {
 
     @Override
     public Flux<SupplierAvailability> fetchAvailability(List<String> supplierHotelCodes, SearchCondition condition) {
-        return Flux.fromIterable(partition(supplierHotelCodes, CHUNK_SIZE))
+        return Flux.fromIterable(SupplierChunkUtil.partition(supplierHotelCodes, CHUNK_SIZE))
                 .flatMap(chunk -> fetchAvailabilityChunk(chunk, condition));
     }
 
@@ -85,25 +87,16 @@ public class SupplierBAdapter implements SupplierPort {
     }
 
     private SupplierAvailability toAvailability(SupplierBAvailabilityItem item) {
-        int remainingRooms = item.inventory().stream()
-                .mapToInt(SupplierBInventory::remainingRooms)
-                .min()
-                .orElse(0);
+        List<DailyInventory> inventory = item.inventory().stream()
+                .map(inv -> new DailyInventory(LocalDate.parse(inv.date()), inv.remainingRooms()))
+                .toList();
         return new SupplierAvailability(
                 item.propertyId(),
                 item.roomId(),
                 item.totalPrice(),
                 item.currency(),
                 item.breakfastIncluded(),
-                remainingRooms
+                InventoryCalculator.calculate(inventory)
         );
-    }
-
-    private static <T> List<List<T>> partition(List<T> list, int size) {
-        List<List<T>> partitions = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += size) {
-            partitions.add(list.subList(i, Math.min(i + size, list.size())));
-        }
-        return partitions;
     }
 }

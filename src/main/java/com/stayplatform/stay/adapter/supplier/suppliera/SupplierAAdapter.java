@@ -1,14 +1,16 @@
 package com.stayplatform.stay.adapter.supplier.suppliera;
 
+import com.stayplatform.stay.adapter.supplier.SupplierChunkUtil;
 import com.stayplatform.stay.adapter.supplier.SupplierPort;
 import com.stayplatform.stay.adapter.supplier.dto.SupplierAvailability;
 import com.stayplatform.stay.adapter.supplier.dto.SupplierHotelInfo;
 import com.stayplatform.stay.adapter.supplier.dto.SupplierRoomTypeInfo;
 import com.stayplatform.stay.adapter.supplier.suppliera.dto.SupplierAAvailabilityItem;
 import com.stayplatform.stay.adapter.supplier.suppliera.dto.SupplierAAvailabilityRes;
-import com.stayplatform.stay.adapter.supplier.suppliera.dto.SupplierADailyRate;
 import com.stayplatform.stay.adapter.supplier.suppliera.dto.SupplierAHotelItem;
 import com.stayplatform.stay.adapter.supplier.suppliera.dto.SupplierAHotelListRes;
+import com.stayplatform.stay.domain.DailyInventory;
+import com.stayplatform.stay.domain.InventoryCalculator;
 import com.stayplatform.stay.domain.SearchCondition;
 import com.stayplatform.stay.exception.SupplierUnavailableException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,7 +20,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
@@ -45,7 +47,7 @@ public class SupplierAAdapter implements SupplierPort {
 
     @Override
     public Flux<SupplierAvailability> fetchAvailability(List<String> supplierHotelCodes, SearchCondition condition) {
-        return Flux.fromIterable(partition(supplierHotelCodes, CHUNK_SIZE))
+        return Flux.fromIterable(SupplierChunkUtil.partition(supplierHotelCodes, CHUNK_SIZE))
                 .flatMap(chunk -> fetchAvailabilityChunk(chunk, condition));
     }
 
@@ -77,25 +79,16 @@ public class SupplierAAdapter implements SupplierPort {
         long totalPrice = item.dailyRates().stream()
                 .mapToLong(rate -> rate.nightlyRate() + rate.taxAmount())
                 .sum();
-        int remainingRooms = item.dailyRates().stream()
-                .mapToInt(SupplierADailyRate::remainingRooms)
-                .min()
-                .orElse(0);
+        List<DailyInventory> inventory = item.dailyRates().stream()
+                .map(rate -> new DailyInventory(LocalDate.parse(rate.date()), rate.remainingRooms()))
+                .toList();
         return new SupplierAvailability(
                 item.hotelCode(),
                 item.roomTypeCode(),
                 totalPrice,
                 item.currency(),
                 item.breakfastIncluded(),
-                remainingRooms
+                InventoryCalculator.calculate(inventory)
         );
-    }
-
-    private static <T> List<List<T>> partition(List<T> list, int size) {
-        List<List<T>> partitions = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += size) {
-            partitions.add(list.subList(i, Math.min(i + size, list.size())));
-        }
-        return partitions;
     }
 }
