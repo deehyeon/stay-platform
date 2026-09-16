@@ -8,56 +8,64 @@
 ```
 com.stayplatform
 ├── global/                          # 전 도메인 공통
-│   ├── config/                      # Spring 설정 빈
+│   ├── config/                      # Spring 설정 빈 (WebClient, JPA, Swagger)
 │   ├── domain/                      # BaseEntity, AbstractEntity
 │   ├── exception/                   # ErrorType, GlobalException, GlobalErrorType
+│   ├── adapter/
+│   │   └── mock/                    # Mock Supplier 서버 (포트 9090)
+│   │       ├── MockSupplierHandler.java         # Port 인터페이스
+│   │       ├── AbstractMockSupplierHandler.java # 공통 라우팅·모드 관리
+│   │       ├── MockSupplierMode.java
+│   │       ├── MockSupplierServer.java
+│   │       └── handler/
+│   │           ├── SupplierAMockHandler.java
+│   │           └── SupplierBMockHandler.java
 │   └── webapi/                      # ApiResponse, ApiControllerAdvice
 │
 ├── stay/                            # 숙박 상품 도메인
 │   ├── domain/
 │   │   ├── Hotel.java
 │   │   ├── RoomType.java
-│   │   └── Supplier.java
+│   │   ├── Supplier.java                # SUPPLIER_A, SUPPLIER_B 열거형
+│   │   ├── SupplierHotelMapping.java    # (공급사, hotelCode) ↔ 내부 숙소 ID 매핑
+│   │   ├── SupplierRoomTypeMapping.java # (공급사, hotelCode, roomTypeCode) ↔ 내부 객실 타입 ID 매핑
+│   │   ├── SearchCondition.java         # 검색 조건 값 객체 (체크인·아웃, 인원)
+│   │   ├── DailyInventory.java          # 날짜별 재고
+│   │   └── InventoryCalculator.java     # 연박 재고 판정 (min)
 │   │
 │   ├── application/
 │   │   ├── StaySearchService.java       # 통합 검색 유스케이스
 │   │   ├── HotelSyncService.java        # 숙소 목록 동기화
-│   │   ├── provided/                    # 외부(Controller)에 제공하는 포트
-│   │   │   └── StaySearchUseCase.java
-│   │   ├── required/                    # 외부(Repository 등)에 요구하는 포트
+│   │   ├── required/                    # 외부(Repository, 공급사)에 요구하는 포트
+│   │   │   ├── SupplierPort.java
 │   │   │   ├── HotelRepository.java
 │   │   │   ├── RoomTypeRepository.java
+│   │   │   ├── SupplierRepository.java
 │   │   │   ├── SupplierHotelMappingRepository.java
 │   │   │   └── SupplierRoomTypeMappingRepository.java
-│   │   └── dto/
-│   │       ├── SearchCondition.java
-│   │       └── StaySearchResult.java
+│   │   └── dto/                         # application 레이어 내부 DTO
+│   │       ├── SupplierHotelInfo.java
+│   │       ├── SupplierRoomTypeInfo.java
+│   │       ├── SupplierAvailability.java
+│   │       ├── StaySearchRes.java
+│   │       └── StaySearchItemRes.java
 │   │
 │   ├── adapter/
-│   │   ├── web/
-│   │   │   ├── StaysApi.java            # Swagger 어노테이션 전용 인터페이스
-│   │   │   └── StaysController.java     # GET /api/v1/stays/search
-│   │   ├── persistence/
-│   │   │   ├── HotelJpaRepository.java
-│   │   │   └── mapping/
-│   │   │       ├── SupplierHotelMapping.java
-│   │   │       ├── SupplierRoomTypeMapping.java
-│   │   │       └── ...JpaRepository.java
+│   │   ├── StaySearchController.java    # GET /api/v1/stays/search
+│   │   ├── runner/
+│   │   │   └── HotelSyncRunner.java     # 앱 기동 시 동기화 (ApplicationRunner)
 │   │   └── supplier/
-│   │       ├── SupplierPort.java        # 공급사 어댑터 공통 인터페이스
+│   │       ├── SupplierChunkUtil.java   # 50개 단위 청크 분할 유틸
 │   │       ├── suppliera/
 │   │       │   ├── SupplierAAdapter.java
-│   │       │   └── dto/                 # Supplier A 전용 DTO (도메인 밖으로 노출 금지)
+│   │       │   └── dto/                 # Supplier A 전용 DTO (도메인 밖 노출 금지)
 │   │       └── supplierb/
 │   │           ├── SupplierBAdapter.java
-│   │           └── dto/                 # Supplier B 전용 DTO (도메인 밖으로 노출 금지)
+│   │           └── dto/                 # Supplier B 전용 DTO (도메인 밖 노출 금지)
 │   │
 │   └── exception/
-│       ├── StayErrorType.java
-│       └── StayException.java
-│
-└── mock/                            # Mock 공급사 서버 (포트 9090, 별도 실행)
-    └── MockSupplierController.java
+│       ├── SupplierException.java
+│       └── SupplierUnavailableException.java
 ```
 
 ---
@@ -67,7 +75,7 @@ com.stayplatform
 ### [사전] 숙소 목록 동기화
 
 ```
-앱 기동(또는 스케줄)
+앱 기동 (ApplicationRunner)
 → Supplier A GET /a/v1/hotels
 → Supplier B GET /b/api/properties
 → 각 숙소·객실 타입을 SupplierHotelMapping / SupplierRoomTypeMapping으로 upsert
@@ -94,16 +102,14 @@ GET /api/v1/stays/search?checkIn=&checkOut=&adults=&children=
 
 ### 1. 숙소 목록 동기화 전략
 
-**결정 필요**: 언제 공급사 숙소 목록 API를 호출해 매핑을 생성할 것인가.
-
 | 전략 | 장점 | 단점 |
 |------|------|------|
 | 앱 기동 시 1회 (`ApplicationRunner`) | 구현 단순, 항상 최신 상태로 시작 | 기동 시간 증가, 공급사 장애 시 기동 실패 가능 |
 | 주기적 갱신 (`@Scheduled`) | 신규 숙소 자동 반영 | 스케줄 주기 동안 신규 숙소 누락 |
 | 별도 관리 API | 명시적 제어 | 수동 운영 필요 |
 
-숙소 목록은 자주 바뀌지 않고 재고·요금은 매번 바뀐다. 이 성격 차이를 전략에 반영한다.
-**→ 선택한 전략과 근거를 README.md에 명시한다.**
+숙소 목록은 자주 바뀌지 않고 재고·요금은 매번 바뀐다.
+**→ 앱 기동 시 1회(`ApplicationRunner`) 채택.** 과제 범위에서 숙소 목록 변경 빈도가 낮고 구현 단순성이 우선이므로 기동 1회로 충분하다. 자세한 근거는 README.md 참조.
 
 ### 2. 요금 표준 모델
 
@@ -115,7 +121,7 @@ Supplier A(net, 날짜별)와 Supplier B(gross, 총액)의 요금 방식이 다�
 | net으로 통일 | B의 세금 역산 불가능하므로 사실상 불가 | — | B가 세금 금액을 제공하지 않아 불가 |
 | 공급사별 별도 보존 | 원본 그대로 유지 | 정보 손실 없음 | 비교 불가, 응답 구조 복잡 |
 
-**→ 총액(gross)으로 통일이 현실적. 선택 근거를 README.md에 명시한다.**
+**→ 총액(gross)으로 통일.** Supplier B가 날짜별 단가를 전혀 제공하지 않아 net 통일은 불가능하다. 자세한 근거는 README.md 참조.
 
 ### 3. 조식 조건 차이 처리
 
@@ -135,7 +141,7 @@ Supplier A(net, 날짜별)와 Supplier B(gross, 총액)의 요금 방식이 다�
 | 응답에서 제외 | 고객에게 예약 불가 상품을 보여주지 않음 |
 | 0으로 노출 | 고객이 존재 여부는 알되 예약 불가임을 알 수 있음 |
 
-**→ 선택한 방식과 근거를 README.md에 명시한다.**
+**→ 0으로 노출 채택.** 상품 존재 사실은 유지하고 `remainingRooms: 0`으로 예약 불가를 표현한다. 숙소가 존재하나 해당 기간에 객실이 없다는 정보 자체가 고객에게 유용하다.
 
 ### 5. 서로 다른 공급사의 동일 숙소 처리
 
@@ -149,7 +155,7 @@ Supplier A(net, 날짜별)와 Supplier B(gross, 총액)의 요금 방식이 다�
 ### 6. WebFlux 전면 도입 여부
 
 Spring MVC 위에서 WebClient만 사용한다. WebFlux 전면 도입은 요구사항이 아니다.
-**→ 선택 근거를 README.md에 명시한다.**
+**→ Spring MVC + WebClient 혼용 채택.** 컨트롤러~서비스는 동기, 공급사 호출만 Reactor(`Flux`/`Mono`)로 처리한다. 자세한 근거는 README.md 참조.
 
 ---
 
@@ -169,7 +175,7 @@ supplier:
       response-ms: 5000
 ```
 
-**→ 값 설정 근거(공급사 SLA, 허용 지연)를 README.md에 명시한다.**
+타임아웃 값 설정 근거는 README.md 참조.
 
 ### 부분 실패 처리
 
@@ -212,6 +218,8 @@ Mock Supplier (port 9090)
 ```
 
 **같은 포트에 두면 안 되는 이유**: 자기 자신을 HTTP로 호출하게 되어 스레드가 묶이면서 연동 문제로 오해하기 쉬운 실패가 발생한다.
+
+Mock 서버는 `MockSupplierHandler` 인터페이스를 구현한 `@Component`를 자동 주입받아 등록한다. 신규 공급사 추가 시 새 `@Component` 클래스만 추가하면 되고 `MockSupplierServer` 수정은 불필요하다.
 
 ---
 
