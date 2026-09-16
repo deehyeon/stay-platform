@@ -39,26 +39,6 @@ GRANT ALL PRIVILEGES ON DATABASE stayplatformdb TO stayplatform;
 1. **Mock Supplier 서버** (포트 9090) — Supplier A·B의 Mock HTTP 서버
 2. **숙소 목록 동기화** — 공급사 숙소 목록 API를 호출해 내부 매핑 테이블 구성
 
-### 검색 API 호출
-
-```bash
-curl "http://localhost:8080/api/v1/stays/search?checkIn=2026-09-01&checkOut=2026-09-04&adults=2&children=0"
-```
-
-### Mock 공급사 모드 전환
-
-```bash
-# Supplier A 장애 모드
-curl -X POST "http://localhost:9090/control/a/mode?value=error"
-
-# Supplier B 무응답 모드 (타임아웃 검증)
-curl -X POST "http://localhost:9090/control/b/mode?value=no-response"
-
-# 정상으로 복구
-curl -X POST "http://localhost:9090/control/a/mode?value=normal"
-curl -X POST "http://localhost:9090/control/b/mode?value=normal"
-```
-
 ---
 
 ## 설계 의사결정
