@@ -8,6 +8,8 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 
 public interface SupplierPort {
+    String supplierCode();
+    String supplierName();
     Flux<SupplierHotelInfo> fetchHotelList();
     Flux<SupplierAvailability> fetchAvailability(List<String> supplierHotelCodes, SearchCondition condition);
 }
