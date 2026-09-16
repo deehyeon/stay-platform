@@ -59,7 +59,7 @@ Supplier B는 `totalPrice`(전체 총액, 세금 포함)만 제공하고 **날�
 - Supplier A: `Σ(nightlyRate + taxAmount)` for each night → 총액 계산 후 저장
 - Supplier B: `totalPrice` 그대로 사용
 
-#### 버린 것
+#### 구현하지 않은 것
 
 - **날짜별 단가**: Supplier B에서 제공하지 않으므로 표현 불가
 - **세금 금액 분리**: Supplier B에서 역산 불가 (`taxIncluded: true`만 알림)
