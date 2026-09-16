@@ -4,6 +4,85 @@
 
 ---
 
+## 시스템 개요
+
+공급사마다 API 스펙이 다르다. 같은 "숙박 상품"을 서로 다른 방식으로 표현하기 때문에 이를 그대로 노출할 수 없다. 여러 공급사의 상품을 하나의 일관된 숙박 상품 모델로 통합하는 것이 이 시스템의 핵심이다.
+
+### 공급사별 API 차이
+
+| 항목 | Supplier A | Supplier B |
+|------|-----------|-----------|
+| 숙소 식별자 | `hotelCode` | `propertyId` |
+| 객실 식별자 | `roomTypeCode` | `roomId` |
+| 요금 방식 | 날짜별 단가(`nightlyRate`) + 세금 별도 | 숙박 전체 총액(`totalPrice`), 세금 포함 |
+| 실패 표현 | HTTP `4xx` / `5xx` | **HTTP는 항상 200**, `resultCode`로만 실패 전달 |
+
+### 해결 방법: 인터페이스와 추상화
+
+`SupplierPort` 인터페이스 하나로 모든 공급사를 동일하게 다룬다. 공급사 고유의 API 스펙은 각 어댑터 안에서만 처리하고, 애플리케이션 레이어는 공급사 구분 없이 통합 모델만 다룬다.
+
+```mermaid
+graph TD
+    Controller["StaySearchController"] --> Service["StaySearchService"]
+    Service --> Port["&lt;&lt;interface&gt;&gt;\nSupplierPort"]
+    Port --> AdapterA["SupplierAAdapter\n(GET /a/v1/availability)"]
+    Port --> AdapterB["SupplierBAdapter\n(GET /b/api/search)"]
+    AdapterA --> MockA["Mock Server\n:9090/a"]
+    AdapterB --> MockB["Mock Server\n:9090/b"]
+    Service --> DB[("PostgreSQL\n매핑 테이블")]
+
+    subgraph Application Layer
+        Service
+        Port
+    end
+
+    subgraph Adapter Layer
+        AdapterA
+        AdapterB
+    end
+```
+
+신규 공급사 추가 시 `SupplierPort`를 구현하는 어댑터 클래스 하나만 추가하면 된다. `HotelSyncService`와 `StaySearchService`는 `List<SupplierPort>`를 주입받으므로 **서비스 코드 수정 없이** 자동으로 새 공급사가 참여한다.
+
+### 헥사고날 아키텍처 (Ports & Adapters)
+
+```mermaid
+graph LR
+    subgraph Application
+        SyncSvc["HotelSyncService"]
+        SearchSvc["StaySearchService"]
+        subgraph Required Ports
+            SP["SupplierPort"]
+            HR["HotelRepository"]
+            MR["MappingRepository"]
+        end
+    end
+
+    subgraph Adapters
+        direction TB
+        AA["SupplierAAdapter"]
+        BA["SupplierBAdapter"]
+        JPA["JPA\nRepositories"]
+        Web["StaySearch\nController"]
+    end
+
+    Web -->|"호출"| SearchSvc
+    SearchSvc --> SP
+    SearchSvc --> HR
+    SearchSvc --> MR
+    SyncSvc --> SP
+    SyncSvc --> HR
+    SyncSvc --> MR
+    SP -.->|"구현"| AA
+    SP -.->|"구현"| BA
+    HR -.->|"구현"| JPA
+    MR -.->|"구현"| JPA
+```
+
+Application 레이어는 인터페이스(Port)만 바라본다. JPA·WebClient 등 기술 세부사항은 Adapter에 격리되어 있어 공급사가 추가되거나 인프라가 교체되어도 비즈니스 로직은 변경되지 않는다.
+
+---
+
 ## 빌드 및 실행
 
 ### Docker Compose로 실행 (권장)
