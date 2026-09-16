@@ -6,15 +6,25 @@
 
 ## 빌드 및 실행
 
-### 사전 요구사항
+### Docker Compose로 실행 (권장)
+
+```bash
+docker-compose up --build
+```
+
+PostgreSQL, Redis, 앱이 한 번에 기동된다. DB/Redis가 healthy 상태가 된 후 앱이 시작된다.
+
+### 직접 실행
+
+#### 사전 요구사항
 
 | 항목 | 버전 |
 |------|------|
 | Java | 21 |
-| PostgreSQL | 15+ |
+| PostgreSQL | 16 |
 | Redis | 7+ |
 
-### 데이터베이스 설정
+#### 데이터베이스 설정
 
 ```sql
 CREATE DATABASE stayplatformdb;
@@ -22,13 +32,7 @@ CREATE USER stayplatform WITH PASSWORD 'stayplatform';
 GRANT ALL PRIVILEGES ON DATABASE stayplatformdb TO stayplatform;
 ```
 
-### 빌드
-
-```bash
-./gradlew build
-```
-
-### 실행
+#### 빌드 및 실행
 
 ```bash
 ./gradlew bootRun
