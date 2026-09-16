@@ -1,4 +1,4 @@
-package com.stayplatform.stay.adapter.supplier;
+package com.stayplatform.stay.adapter.supplier.dto;
 
 import java.util.List;
 
