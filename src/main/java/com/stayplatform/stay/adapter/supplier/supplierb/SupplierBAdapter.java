@@ -14,6 +14,12 @@ import com.stayplatform.stay.domain.DailyInventory;
 import com.stayplatform.stay.domain.InventoryCalculator;
 import com.stayplatform.stay.domain.SearchCondition;
 import com.stayplatform.stay.exception.SupplierUnavailableException;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
+import io.github.resilience4j.reactor.retry.RetryOperator;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryRegistry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -30,9 +36,16 @@ public class SupplierBAdapter implements SupplierPort {
     private static final int CHUNK_SIZE = 50;
 
     private final WebClient webClient;
+    private final CircuitBreaker circuitBreaker;
+    private final Retry retry;
 
-    public SupplierBAdapter(@Qualifier("supplierBWebClient") WebClient webClient) {
+    public SupplierBAdapter(
+            @Qualifier("supplierBWebClient") WebClient webClient,
+            CircuitBreakerRegistry circuitBreakerRegistry,
+            RetryRegistry retryRegistry) {
         this.webClient = webClient;
+        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("supplierB");
+        this.retry = retryRegistry.retry("supplierB");
     }
 
     @Override
@@ -58,7 +71,9 @@ public class SupplierBAdapter implements SupplierPort {
                     return Mono.just(res.data());
                 })
                 .flatMapMany(data -> Flux.fromIterable(data.items()))
-                .map(this::toHotelInfo);
+                .map(this::toHotelInfo)
+                .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     @Override
@@ -86,7 +101,9 @@ public class SupplierBAdapter implements SupplierPort {
                     return Mono.just(res.data());
                 })
                 .flatMapMany(data -> Flux.fromIterable(data.items()))
-                .map(this::toAvailability);
+                .map(this::toAvailability)
+                .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     private SupplierHotelInfo toHotelInfo(SupplierBPropertyItem item) {
