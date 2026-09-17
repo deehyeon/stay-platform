@@ -4,6 +4,10 @@ import com.stayplatform.stay.application.dto.SupplierAvailability;
 import com.stayplatform.stay.application.dto.SupplierHotelInfo;
 import com.stayplatform.stay.domain.SearchCondition;
 import com.stayplatform.stay.exception.SupplierUnavailableException;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -31,7 +35,12 @@ class SupplierAAdapterTest {
         WebClient webClient = WebClient.builder()
                 .baseUrl(mockWebServer.url("/").toString())
                 .build();
-        adapter = new SupplierAAdapter(webClient);
+        // CB: failureRateThreshold=100 → 절대 열리지 않음 / Retry: maxAttempts=1 → 재시도 없음
+        CircuitBreakerRegistry cbRegistry = CircuitBreakerRegistry.of(
+                CircuitBreakerConfig.custom().slidingWindowSize(100).failureRateThreshold(100f).build());
+        RetryRegistry retryRegistry = RetryRegistry.of(
+                RetryConfig.custom().maxAttempts(1).build());
+        adapter = new SupplierAAdapter(webClient, cbRegistry, retryRegistry);
     }
 
     @AfterEach
